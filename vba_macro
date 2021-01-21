@@ -1,0 +1,195 @@
+'右クリックメニューの追加
+Sub command_menu_add()
+    With CommandBars("Cell").Controls.Add()
+        .Caption = "output csv"
+        .OnAction = "selection_range_output_csv"
+    End With
+    
+    With CommandBars("Cell").Controls.Add()
+        .Caption = "format FALSE"
+        .OnAction = "selection_set_format_condition_false"
+    End With
+    
+    With CommandBars("Cell").Controls.Add()
+        .Caption = "format NG"
+        .OnAction = "selection_set_format_condition_NG"
+    End With
+End Sub
+'右クリックメニューの削除
+Sub command_menu_delete()
+    CommandBars("Cell").Controls("output csv").Delete
+    CommandBars("Cell").Controls("format FALSE").Delete
+    CommandBars("Cell").Controls("format NG").Delete
+End Sub
+
+Sub files()
+    Dim rng As Range
+    Dim path As String, buf As String
+    Dim i As Integer
+    
+    'set path
+    path = InputBox("input path")
+    
+    On Error GoTo ErrHandl
+      Set rng = Application.InputBox(Prompt:="select output cell", Type:=8)
+    
+    
+    buf = Dir(path & "\")
+    rng = path
+    rng.Offset(1, 0) = "<filename>"
+    
+    i = 2
+    Do While Len(buf) > 0
+        rng.Offset(i, 0) = buf
+        buf = Dir()
+        i = i + 1
+    Loop
+  
+ErrHandl:
+  Err.Clear
+  
+End Sub
+
+Sub sheets()
+    Dim rng As Range
+    Dim openfilename_path As String, openfilename As String, buf As String
+    Dim i As Integer
+    
+    ChDrive "C"
+    openfilename_path = Application.GetOpenFilename("Microsoft Excelブック,*.xlsx?")
+    If openfilename_path <> "False" Then
+        Workbooks.Open openfilename_path
+        ThisWorkbook.Activate
+    End If
+    
+    openfilename = Mid(openfilename_path, InStrRev(openfilename_path, "\") + 1)
+    
+    On Error GoTo ErrHandl
+      Set rng = Application.InputBox(Prompt:="select output cell", Type:=8)
+    
+    rng = openfilename_path
+    rng.Offset(1, 0) = "<sheetname>"
+    
+    For i = 1 To Workbooks(openfilename).sheets.Count
+        rng.Offset(i + 1, 0) = Workbooks(openfilename).sheets(i).Name
+    Next i
+    
+    Workbooks(openfilename).Close SaveChanges:=False
+    
+ErrHandl:
+  Err.Clear
+End Sub
+
+Sub set_format_condition_false()
+    Dim rng As Range
+        
+    On Error GoTo ErrHandl
+      Set rng = Application.InputBox(Prompt:="select output cell", Type:=8)
+        
+    rng.FormatConditions.Add Type:=xlCellValue, Operator:=xlEqual, Formula1:="=FALSE"
+      
+    With rng.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .Color = 13551615
+        .TintAndShade = 0
+    End With
+  
+ErrHandl:
+  Err.Clear
+  
+End Sub
+'選択範囲のフォーマットを変更する
+Sub selection_set_format_condition_false()
+    Dim rng As Range
+        
+    Set rng = Selection
+        
+    rng.FormatConditions.Add Type:=xlCellValue, Operator:=xlEqual, Formula1:="=FALSE"
+      
+    With rng.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .Color = 13551615
+        .TintAndShade = 0
+    End With
+    
+End Sub
+
+
+Sub set_format_condition_NG()
+    Dim rng As Range
+        
+    On Error GoTo ErrHandl
+      Set rng = Application.InputBox(Prompt:="select output cell", Type:=8)
+        
+    rng.FormatConditions.Add Type:=xlCellValue, Operator:=xlEqual, Formula1:="=""NG"""
+      
+    With rng.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .Color = 13551615
+        .TintAndShade = 0
+    End With
+  
+ErrHandl:
+  Err.Clear
+  
+End Sub
+'選択範囲のフォーマットを変更する
+Sub selection_set_format_condition_NG()
+    Dim rng As Range
+        
+    Set rng = Selection
+        
+    rng.FormatConditions.Add Type:=xlCellValue, Operator:=xlEqual, Formula1:="=""NG"""
+      
+    With rng.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .Color = 13551615
+        .TintAndShade = 0
+    End With
+    
+End Sub
+
+Sub set_password()
+    ActiveWorkbook.SaveAs filename:=ActiveWorkbook.path & "\" & ActiveWorkbook.Name, Password:="40200"
+End Sub
+
+Sub output_csv()
+'範囲を選択させて、その範囲をCSVで出力する
+    Dim rng As Range
+    Dim filename As Variant
+        
+    On Error GoTo ErrHandl
+        Set rng = Application.InputBox(Prompt:="select output cell", Type:=8)
+        
+    Workbooks.Add
+    
+    ActiveWorkbook.sheets(1).Range("A1").Resize(rng.Rows.Count, rng.Columns.Count) = rng.Value
+  
+    filename = Application.GetSaveAsFilename(InitialFileName:="名無し.csv", filefilter:="CSVファイル,*.csv")
+    If filename = False Then Exit Sub
+    ActiveWorkbook.SaveAs filename, FileFormat:=xlCSV, local:=True
+    ActiveWorkbook.Close
+    
+ErrHandl:
+  Err.Clear
+
+End Sub
+
+Sub selection_range_output_csv()
+'アクティブな範囲をCSVで出力する
+    Dim rng As Range
+    Dim filename As Variant
+        
+    Set rng = Selection
+    
+    Workbooks.Add
+    
+    ActiveWorkbook.sheets(1).Range("A1").Resize(rng.Rows.Count, rng.Columns.Count) = rng.Value
+  
+    filename = Application.GetSaveAsFilename(InitialFileName:="名無し.csv", filefilter:="CSVファイル,*.csv")
+    If filename = False Then Exit Sub
+    ActiveWorkbook.SaveAs filename, FileFormat:=xlCSV, local:=True
+    ActiveWorkbook.Close
+    
+End Sub
+
