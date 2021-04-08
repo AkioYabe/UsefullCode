@@ -1,0 +1,5 @@
+Sub test()
+    With ActiveSheet.Hyperlinks
+        .Add anchor:=Range("B4"), Address:=Range("A4") & "\" & Range("B4")
+    End With
+End Sub
